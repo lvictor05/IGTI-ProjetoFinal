@@ -1,0 +1,22 @@
+@startuml C1 - Legado
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(cliente, "Cliente")
+
+System_Boundary(b_checkout, "Serviços de checkout") {
+    Container(checkout, "Checkout Service", "Java, SpringBoot", "Executa os calculos com base nos produtos que o cliente escolheu e finaliza a compra")
+    Container(order_service, "Order Service", "Java, SpringBoot", "Cria uma ordem")
+    Container(order_consumer, "Order Consumer", "Java, SpringBoot", "Processa orders")
+    Container(order_publisher, "Order Publisher", "Java, SpringBoot", "Recebe uma atualização ")
+}
+
+System(erp, "ERP")
+Rel(cliente, checkout, "Sends Products", "HTTPS")
+Rel(order_service, cliente, "Get orders (Historico)", "HTTPS")
+Rel(checkout, order_service, "Send New Orders", "HTTP")
+Rel(order_service, order_consumer, "Send New Orders", "AMQP")
+Rel(order_publisher, order_consumer, "Send Orders Update", "AMQP")
+Rel(order_service, erp, "Get New Orders", "HTTPS")
+Rel(erp, order_publisher, "Send Orders Update", "HTTPS")
+@enduml
+
