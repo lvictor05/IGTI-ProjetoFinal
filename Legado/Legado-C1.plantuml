@@ -3,20 +3,13 @@
 
 Person(cliente, "Cliente")
 
-System_Boundary(b_checkout, "Serviços de checkout") {
-    Container(checkout, "Checkout Service", "Java, SpringBoot", "Executa os calculos com base nos produtos que o cliente escolheu e finaliza a compra")
-    Container(order_service, "Order Service", "Java, SpringBoot", "Cria uma ordem")
-    Container(order_consumer, "Order Consumer", "Java, SpringBoot", "Processa orders")
-    Container(order_publisher, "Order Publisher", "Java, SpringBoot", "Recebe uma atualização ")
+System_Boundary(b_checkout, "E-commerce") {
+    Container(checkout, "Checkout Services", "Java, SpringBoot, React", "Recebe os dados de uma compra de um cliente e executa a venda")
 }
 
 System(erp, "ERP")
-Rel(cliente, checkout, "Sends Products", "HTTPS")
-Rel(order_service, cliente, "Get orders (Historico)", "HTTPS")
-Rel(checkout, order_service, "Send New Orders", "HTTP")
-Rel(order_service, order_consumer, "Send New Orders", "AMQP")
-Rel(order_publisher, order_consumer, "Send Orders Update", "AMQP")
-Rel(order_service, erp, "Get New Orders", "HTTPS")
-Rel(erp, order_publisher, "Send Orders Update", "HTTPS")
+Rel(cliente, checkout, "Envia os produtos", "HTTPS")
+Rel(checkout, erp, "Atualiza o ERP", "HTTPS")
+Rel(erp, checkout, "Atualiza o E-commerce", "HTTPS")
 @enduml
 

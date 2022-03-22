@@ -1,0 +1,34 @@
+@startuml C1 - Legado
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(cliente, "Cliente")
+
+System_Boundary(b_checkout, "Checkout Services") {
+    Container(checkout, "Checkout Service", "Java, SpringBoot", "Executa os calculos com base nos produtos que o cliente escolheu e finaliza a compra")
+    Container(order_service, "Order Service", "Java, SpringBoot", "Cria uma ordem")
+    Container(order_consumer, "Order Consumer", "Java, SpringBoot", "Processa orders")
+    Container(order_publisher, "Order Publisher", "Java, SpringBoot", "Recebe uma atualização")
+    Container(rabbit, "Message Broker", "RabbitMQ", "Trafega orders")
+    ContainerDb(mongo, "Database", "MongoDB", "Armazena ordens de compra")
+}
+
+System(erp, "ERP")
+Rel(cliente, checkout, "Sends Products", "HTTPS")
+
+Rel(checkout, order_service, "Send New Orders", "HTTP")
+
+Rel(order_service, cliente, "Get orders (Historico)", "HTTPS")
+Rel(order_service, rabbit, "Publish New Orders on Queues", "AMQP")
+Rel(order_service, erp, "Get New Orders", "HTTPS")
+
+Rel(order_consumer, mongo, "Save/Update order", "HTTPS")
+
+Rel(rabbit, order_consumer, "Send Orders Update", "HTTPS")
+
+Rel(order_publisher, rabbit, "Publish Orders on Queues", "AMQP")
+
+Rel(erp, order_publisher, "Send Orders Update", "HTTPS")
+
+Rel(mongo, order_service, "Get New Orders", "HTTPS")
+@enduml
+
