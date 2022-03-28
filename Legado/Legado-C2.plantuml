@@ -12,23 +12,45 @@ System_Boundary(b_checkout, "Checkout Services") {
     ContainerDb(mongo, "Database", "MongoDB", "Armazena ordens de compra")
 }
 
+System_Boundary(b_other_services, "E-commerce Services") {
+    Container(accounts, "Accounts Service", "Java, SpringBoot", "Guarda informações de contas de usuario")
+    Container(pricing, "Pricing Service", "Java, SpringBoot", "Calcula preços")
+    Container(combos, "Accounts Service", "Java, SpringBoot", "Guarda informações de combos")
+    Container(items, "Items Service", "Java, SpringBoot", "Salva as informações de items")
+    Container(persistentCart, "Persistent Cart Publisher", "Java, SpringBoot", "Atualiza carrinho persistido")
+    Container(communications, "Communication Publisher", "Java, SpringBoot", "Envia mensagem para usuarios")
+    Container(inventory, "Inventory Publisher", "Java, SpringBoot", "Atualiza as informações de estoque")
+    Container(rewards, "Rewards Publisher", "Java, SpringBoot", "Atualiza pontuação de usuario")
+}
+
 System(erp, "ERP")
-Rel(cliente, checkout, "Sends Products", "HTTPS")
+Rel(cliente, checkout, "Envia carrinho de compras", "HTTPS")
 
-Rel(checkout, order_service, "Send New Orders", "HTTP")
+Rel(checkout, order_service, "Envia uma nova ordem", "HTTP")
+Rel(checkout, accounts, "Busca dados da conta", "HTTP")
+Rel(checkout, pricing, "Envia dados para calculo de preço", "HTTP")
+Rel(checkout, combos, "Busca dados de combos", "HTTP")
+Rel(checkout, items, "Busca dados de itens", "HTTP")
+Rel(checkout, persistentCart, "Limpa carrinho peristido", "HTTP")
+Rel(checkout, communications, "Envia email de compra", "HTTP")
+Rel(checkout, inventory, "Da baixa no estoque", "HTTP")
+Rel(checkout, rewards, "Envia pontos para os clientes", "HTTP")
 
-Rel(order_service, cliente, "Get orders (Historico)", "HTTPS")
-Rel(order_service, rabbit, "Publish New Orders on Queues", "AMQP")
-Rel(order_service, erp, "Get New Orders", "HTTPS")
 
-Rel(order_consumer, mongo, "Save/Update order", "HTTPS")
+Rel(order_service, cliente, "Busca historico de ordens", "HTTPS")
+Rel(order_service, rabbit, "Publica novas ordens na fila", "AMQP")
+Rel(order_service, erp, "Busca novas ordens", "HTTPS")
 
-Rel(rabbit, order_consumer, "Send Orders Update", "HTTPS")
+Rel(order_consumer, mongo, "Cria ou atualiza uma order", "HTTPS")
+Rel(order_consumer, items, "Busca dados dos itens", "HTTPS")
+Rel(order_consumer, combos, "Busca dados dos combos", "HTTPS")
 
-Rel(order_publisher, rabbit, "Publish Orders on Queues", "AMQP")
+Rel(rabbit, order_consumer, "Envia a atualização de uma ordem", "HTTPS")
 
-Rel(erp, order_publisher, "Send Orders Update", "HTTPS")
+Rel(order_publisher, rabbit, "Publica ordens na fila", "AMQP")
 
-Rel(mongo, order_service, "Get New Orders", "HTTPS")
+Rel(erp, order_publisher, "Envia atualização de ordens", "HTTPS")
+
+Rel(mongo, order_service, "Busca novas ordens", "HTTPS")
 @enduml
 
