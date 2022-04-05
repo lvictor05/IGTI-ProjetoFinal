@@ -1,4 +1,4 @@
-@startuml C1 - Legado
+@startuml C1 - Novo
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
 Person(cliente, "Cliente")

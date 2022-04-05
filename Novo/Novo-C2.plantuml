@@ -1,0 +1,33 @@
+@startuml C1 - Legado
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(cliente, "Cliente")
+
+System_Boundary(b_checkout, "Checkout Services") {
+    Container(checkout, "Checkout Service", "Java, SpringBoot", "Executa os calculos com base nos produtos que o cliente escolheu e finaliza a compra")
+    Container(order_service, "Order Service", "Java, SpringBoot", "Cria uma ordem")
+    Container(order_consumer, "Order Consumer", "Java, SpringBoot", "Processa orders")
+    Container(order_publisher, "Order Publisher", "Java, SpringBoot", "Recebe uma atualização")
+    Container(kafka_ingestion, "Message Broker Ingestion", "Kafka", "Trafega atualização de orders")
+    Container(kafka_orders, "Message Broker Update", "Kafka", "Trafega atualização de orders")
+    Container(order_notification, "Order Service", "Java, SpringBoot", "Cria uma ordem")
+    Container(checkout_async_services, "Order Service", "Java, SpringBoot", "Cria uma ordem")
+    ContainerDb(mongo, "Database", "MongoDB", "Armazena ordens de compra")
+}
+
+System_Boundary(b_other_services, "E-commerce Services") {
+    Container(accounts, "Accounts Service", "Java, SpringBoot", "Guarda informações de contas de usuario")
+    Container(pricing, "Pricing Service", "Java, SpringBoot", "Calcula preços")
+    Container(combos, "Accounts Service", "Java, SpringBoot", "Guarda informações de combos")
+    Container(items, "Items Service", "Java, SpringBoot", "Salva as informações de items")
+    Container(persistentCart, "Persistent Cart Publisher", "Java, SpringBoot", "Atualiza carrinho persistido")
+    Container(communications, "Communication Publisher", "Java, SpringBoot", "Envia mensagem para usuarios")
+    Container(inventory, "Inventory Publisher", "Java, SpringBoot", "Atualiza as informações de estoque")
+    Container(rewards, "Rewards Publisher", "Java, SpringBoot", "Atualiza pontuação de usuario")
+}
+
+System(erp, "ERP")
+
+
+
+
