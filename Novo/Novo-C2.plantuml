@@ -1,33 +1,76 @@
-@startuml C1 - Legado
+@startuml C2 - Novo
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
 
 Person(cliente, "Cliente")
 
-System_Boundary(b_checkout, "Checkout Services") {
+System_Boundary(b_checkout, "E-commerce Services") {
     Container(checkout, "Checkout Service", "Java, SpringBoot", "Executa os calculos com base nos produtos que o cliente escolheu e finaliza a compra")
-    Container(order_service, "Order Service", "Java, SpringBoot", "Cria uma ordem")
-    Container(order_consumer, "Order Consumer", "Java, SpringBoot", "Processa orders")
-    Container(order_publisher, "Order Publisher", "Java, SpringBoot", "Recebe uma atualização")
-    Container(kafka_ingestion, "Message Broker Ingestion", "Kafka", "Trafega atualização de orders")
-    Container(kafka_orders, "Message Broker Update", "Kafka", "Trafega atualização de orders")
-    Container(order_notification, "Order Service", "Java, SpringBoot", "Cria uma ordem")
-    Container(checkout_async_services, "Order Service", "Java, SpringBoot", "Cria uma ordem")
+    Container(order_service, "Order Service", "Java, SpringBoot", "Busca Ordens")
+    Container(order_consumer, "Order Consumer", "Java, SpringBoot", "Processa Ordens")
+    Container(order_etl, "Order ETL", "Java, SpringBoot", "Enriquece os dados de Ordens")
+    
+    Container(order_notification, "Order Notification Service", "Java, SpringBoot", "Monta o template de um email")
+    Container(debezium_orders, "Debezium Orders", "Java, SpringBoot", "Publica mudanças de base de dados em um tópico Kafka")
+    Container(checkout_async_services, "Checkout Async Service", "Java, SpringBoot", "Executa Consumos de uma ordem")
+    
     ContainerDb(mongo, "Database", "MongoDB", "Armazena ordens de compra")
-}
+    ContainerDb(mongo_analitics, "Cold Database", "MongoDB Analytics Node", "Armazena ordens de compra")
 
-System_Boundary(b_other_services, "E-commerce Services") {
-    Container(accounts, "Accounts Service", "Java, SpringBoot", "Guarda informações de contas de usuario")
-    Container(pricing, "Pricing Service", "Java, SpringBoot", "Calcula preços")
-    Container(combos, "Accounts Service", "Java, SpringBoot", "Guarda informações de combos")
-    Container(items, "Items Service", "Java, SpringBoot", "Salva as informações de items")
-    Container(persistentCart, "Persistent Cart Publisher", "Java, SpringBoot", "Atualiza carrinho persistido")
-    Container(communications, "Communication Publisher", "Java, SpringBoot", "Envia mensagem para usuarios")
-    Container(inventory, "Inventory Publisher", "Java, SpringBoot", "Atualiza as informações de estoque")
-    Container(rewards, "Rewards Publisher", "Java, SpringBoot", "Atualiza pontuação de usuario")
+    ContainerQueue(kafka_new_order, "New Orders Message Broker", "Kafka", "Trafega Novas Ordens")
+    ContainerQueue(kafka_update_order, "Integration Orders Message Broker", "Kafka", "Trafega atualização de orders")
+    ContainerQueue(kafka_orders_etl, "ETL Orders Message Broker ", "Kafka", "Trafega Ordens enriquecidas")
+    ContainerQueue(kafka_orders, "Orders Message Broker ", "Kafka", "Trafega atualização de orders já pesistidas no DB")
+   
+    Container_Ext(accounts, "Accounts Service", "Java, SpringBoot", "Guarda informações de contas de usuario")
+    Container_Ext(pricing, "Pricing Service", "Java, SpringBoot", "Calcula preços")
+    Container_Ext(combos, "Combos Service", "Java, SpringBoot", "Guarda informações de combos")
+    Container_Ext(items, "Items Service", "Java, SpringBoot", "Salva as informações de items")
+    Container_Ext(persistentCart, "Persistent Cart Publisher", "Java, SpringBoot", "Guarda informações de carrinho persistido")
+    Container_Ext(communications, "Communication Publisher", "Java, SpringBoot", "Envia mensagem para usuarios")
+    Container_Ext(inventory, "Inventory Publisher", "Java, SpringBoot", "Guarda as informações de estoque")
+    Container_Ext(rewards, "Rewards Publisher", "Java, SpringBoot", "Guarda pontuação de usuario")
 }
 
 System(erp, "ERP")
 
+Rel(cliente, checkout, "Busca calculo de preços", "HTTP")
+Rel(cliente, order_service, "Busca dados das ordens", "HTTP")
+
+Rel(checkout, accounts, "Busca dados da conta", "HTTP")
+Rel(checkout, combos, "Busca dados de combos", "HTTP")
+Rel(checkout, items, "Busca dados de itens", "HTTP")
+Rel(checkout, pricing, "Busca calculo de preços", "HTTP")
+Rel(checkout, kafka_new_order, "Posta uma nova ordem", "TCP")
+
+Rel(kafka_orders, order_notification, "Envia um email", "TCP")
+Rel(kafka_orders,checkout_async_services, "Faz todos os consumos após o checkout", "TCP")
+Rel(kafka_orders, erp, "Envia atualização de ordens para o ERP", "TCP")
+
+Rel(checkout_async_services, persistentCart, "Limpa carrinho peristido", "HTTP")
+Rel(checkout_async_services, inventory, "Da baixa no estoque", "HTTP")
+Rel(checkout_async_services, rewards, "Envia pontos para os clientes", "HTTP")
+
+Rel(mongo,debezium_orders, "Envia atualização de ordens", "Mongo Change Stream")
+Rel(mongo,mongo_analitics, "Sincronização automatica entre os nós")
+Rel(mongo_analitics,order_service, "Busca dados das compras", "JDBC")
+
+Rel(debezium_orders,kafka_orders, "Envia atualização orders para um tópico", "TCP")
+
+Rel(kafka_new_order,order_etl, "Envia navas orders para serem enriquecidas", "TCP")
+Rel(kafka_update_order,order_etl, "Envia atualização orders para serem enriquecidas", "TCP")
+Rel(order_etl, kafka_orders_etl,"Envia ordens enriquecidas para serem processadas", "TCP")
+Rel(kafka_orders_etl, order_consumer,"Envia atualização orders enriquecidas para serem processadas", "TCP")
+
+Rel(erp,kafka_update_order, "Envia atualização de orders ocorridas no ERP", "TCP")
+
+Rel(order_consumer,mongo, "Salva ordens no mongo", "JDBC")
+Rel(items,order_etl, "Busca Informações de items", "HTTP")
+Rel(combos,order_etl, "Busca Informações de combos", "HTTP")
+Rel(accounts,order_etl, "Busca Informações de accounts", "HTTP")
+
+Rel(order_notification,communications, "Envia email de compra", "HTTP")
 
 
 

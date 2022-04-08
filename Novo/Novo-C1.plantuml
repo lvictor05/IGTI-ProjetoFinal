@@ -1,6 +1,8 @@
 @startuml C1 - Novo
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
+LAYOUT_WITH_LEGEND()
+
 Person(cliente, "Cliente")
 
 System_Boundary(b_checkout, "E-commerce") {
@@ -9,7 +11,7 @@ System_Boundary(b_checkout, "E-commerce") {
 
 System(erp, "ERP")
 Rel(cliente, checkout, "Envia os produtos", "HTTPS")
-Rel(checkout, erp, "Atualiza o ERP", "HTTPS")
-Rel(erp, checkout, "Atualiza o E-commerce", "HTTPS")
+Rel(checkout, erp, "Atualiza o ERP", "TCP")
+Rel(erp, checkout, "Atualiza o E-commerce", "TCP")
 @enduml
 
