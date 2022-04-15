@@ -1,0 +1,28 @@
+@startuml C3 - Novo - Order Notification
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+ContainerQueue(kafka_orders, "Orders Message Broker ", "Kafka", "Trafega atualização de orders já pesistidas no DB")
+ Container_Ext(communications, "Communication Publisher", "Java, SpringBoot", "Envia mensagem para usuarios")
+
+System_Boundary(b_checkout, "Order Notification") {
+    Container(order_listener, "Order Listener", "Java, SpringBoot", "Lê os topico de ordens")
+    Container(order_notification_service, "Order Notification Service", "Java, SpringBoot", "Centraliza o processamento e chama a classe de envio de email")
+    Container(template_factory, "Template factory", "Java, SpringBoot", "Centraliza toda a logica de construção de um email")
+    Container(communication_external_service, "Communication External Service", "Java, SpringBoot", "Controi a request para o serviço de communication e executa a chamada")
+    
+}
+
+Rel(kafka_orders,order_listener, "Escuta orders para enviar email", "TCP")
+Rel(order_listener,order_notification_service, "Envia ordem para ser processada")
+Rel(order_notification_service,template_factory, "Envia ordem para construção do template")
+Rel(order_notification_service,communication_external_service, "Envia template para serviço de communicação", "TCP")
+
+Rel(communication_external_service,communications, "Envia requisição para serviço de comunicação", "HTTP")
+
+
+
+
+
+
