@@ -9,7 +9,7 @@ Container_Ext(inventory, "Inventory Publisher", "Java, SpringBoot", "Guarda as i
 Container_Ext(rewards, "Rewards Publisher", "Java, SpringBoot", "Guarda pontuação de usuario")
 
 
-System_Boundary(b_checkout, "Checkout Async Service") {
+System_Boundary(checkout_async, "Checkout Async Service") {
     Container(order_listener, "Order Listener", "Java, SpringBoot", "Lê os topico de ordens")
     Container(checkout_async_service, "Async Service", "Java, SpringBoot", "Centraliza o processamento e chama a classe de envio de email")
     Container(persistent_cart_external_service, "Persistent Cart External Service", "Java, SpringBoot", "Controi a request para o serviço de Persistent Cart e executa a chamada")
@@ -18,6 +18,15 @@ System_Boundary(b_checkout, "Checkout Async Service") {
     
 }
 
+Rel(kafka_orders,order_listener, "Escuta orders para serem executados os consumos necessarios", "TCP")
+Rel(order_listener,checkout_async_service, "Envia ordem para ser processada")
+Rel(checkout_async_service,persistent_cart_external_service, "Chama serviço de Persistent Cart")
+Rel(checkout_async_service,inventory_external_service, "Chama serviço de Inventory")
+Rel(checkout_async_service,rewards_external_service, "Chama serviço de Rewards")
+
+Rel(persistent_cart_external_service,persistent_cart, "Chamada para o serviço de Persistent Cart", "HTTP")
+Rel(inventory_external_service,inventory, "Chamada para o serviço de Inventory", "HTTP")
+Rel(rewards_external_service, rewards, "Chamada para o serviço de Rewards", "HTTP")
 
 
 
