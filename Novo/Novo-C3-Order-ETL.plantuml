@@ -1,0 +1,47 @@
+@startuml C3 - Novo - Order ETL
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+ContainerQueue(kafka_new_order, "New Orders Message Broker", "Kafka", "Trafega Novas Ordens")
+ContainerQueue(kafka_update_order, "Integration Orders Message Broker", "Kafka", "Trafega atualização de orders")
+ContainerQueue(kafka_orders_etl, "ETL Orders Message Broker ", "Kafka", "Trafega Ordens enriquecidas")
+
+ Container_Ext(accounts, "Accounts Service", "Java, SpringBoot", "Guarda informações de contas de usuario")
+ Container_Ext(combos, "Combos Service", "Java, SpringBoot", "Guarda informações de combos")
+ Container_Ext(items, "Items Service", "Java, SpringBoot", "Salva as informações de items")
+ 
+
+System_Boundary(b_checkout, "Order ETL") {
+    Container(new_order_listener, "New Order Listener", "Java, SpringBoot", "Lê os topico de novas ordens")
+    Container(integration_order_message_broker_listener, "Integration Order Listener", "Java, SpringBoot", "Lê os topico de atualização ordens")
+    Container(accounts_external_service, "Accounts External Service", "Java, SpringBoot", "Enriquece os dados de Accounts")
+    Container(combos_external_service, "Combos External Service", "Java, SpringBoot", "Enriquece os dados de Combos")
+    Container(items_external_service, "Items External Service", "Java, SpringBoot", "Enriquece os dados de Items")
+    Container(etl_service, "ETL Service", "Java, SpringBoot", "Centraliza a chamada de todos os enriquecimentos e chama a classe de publicação")
+    Container(kafka_publisher, "Kafka Publisher", "Java, SpringBoot", "Publica no topico ETL Message Broker")
+}
+
+Rel(kafka_new_order,new_order_listener, "Escuta navas orders para serem enriquecidas", "TCP")
+Rel(kafka_update_order,integration_order_message_broker_listener, "Escuta atualização orders para serem enriquecidas", "TCP")
+
+Rel(items, items_external_service, "Busca Informações de items", "HTTP")
+Rel(combos,combos_external_service, "Busca Informações de combos", "HTTP")
+Rel(accounts,accounts_external_service, "Busca Informações de accounts", "HTTP")
+
+Rel(accounts_external_service, etl_service, "Busca Informações de accounts e enriquece a ordem")
+Rel(items_external_service, etl_service, "Busca Informações de accounts e enriquece a ordem")
+Rel(combos_external_service, etl_service, "Busca Informações de accounts e enriquece a ordem")
+
+Rel(new_order_listener, etl_service, "Dispinibiliza uma nova ordem")
+Rel(integration_order_message_broker_listener, etl_service, "Dispinibiliza uma atualização ordem")
+
+Rel(etl_service,kafka_publisher, "Envia ordem enriquecida")
+
+Rel(kafka_publisher, kafka_orders_etl,"Publica ordem enriquecida para o tópico", "TCP")
+
+
+
+
+
+
