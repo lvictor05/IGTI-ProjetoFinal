@@ -1,0 +1,25 @@
+@startuml C3 - Novo - Checkout - Async Service
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+ContainerQueue(kafka_orders, "Orders Message Broker ", "Kafka", "Trafega atualização de orders já pesistidas no DB")
+Container_Ext(persistent_cart, "Persistent Cart Publisher", "Java, SpringBoot", "Guarda informações de carrinho persistido")
+Container_Ext(inventory, "Inventory Publisher", "Java, SpringBoot", "Guarda as informações de estoque")
+Container_Ext(rewards, "Rewards Publisher", "Java, SpringBoot", "Guarda pontuação de usuario")
+
+
+System_Boundary(b_checkout, "Checkout Async Service") {
+    Container(order_listener, "Order Listener", "Java, SpringBoot", "Lê os topico de ordens")
+    Container(checkout_async_service, "Async Service", "Java, SpringBoot", "Centraliza o processamento e chama a classe de envio de email")
+    Container(persistent_cart_external_service, "Persistent Cart External Service", "Java, SpringBoot", "Controi a request para o serviço de Persistent Cart e executa a chamada")
+    Container(inventory_external_service, "Inventory External Service", "Java, SpringBoot", "Controi a request para o serviço de Inventory e executa a chamada")
+    Container(rewards_external_service, "Rewards External Service", "Java, SpringBoot", "Controi a request para o serviço de rewards e executa a chamada")
+    
+}
+
+
+
+
+
+
