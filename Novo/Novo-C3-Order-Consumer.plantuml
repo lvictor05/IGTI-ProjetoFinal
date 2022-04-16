@@ -1,0 +1,24 @@
+@startuml C3 - Novo - Order consumer
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+ContainerQueue(kafka_orders_etl, "ETL Orders Message Broker ", "Kafka", "Trafega Ordens enriquecidas")
+ContainerDb(mongo, "Cold Database", "MongoDB", "Armazena ordens de compra")
+
+System_Boundary(b_order_consumer, "Order Service") {
+    Container(order_listener, "Order Listener", "Java, SpringBoot", "Escuta o tópico de ordens enriquecidas")
+    Container(order_service, "Order Service", "Java, SpringBoot", "Centraliza o processamento e chama a classe de repository")
+    Container(order_repository, "Order Repository", "Java, SpringBoot", "Centraliza todos os metodos que fazem interface com o DB")
+}
+
+Rel(kafka_orders_etl,order_listener, "Escuta o tópico de orders enriquecidas", "TCP")
+Rel(order_listener,order_service, "Envia requisição para processamento")
+Rel(order_service,order_repository, "Envia requisição para camada de DB")
+Rel(order_repository,mongo, "Executa busca no DB")
+
+
+
+
+
+

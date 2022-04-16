@@ -1,0 +1,30 @@
+@startuml C3 - Novo - Checkout Service
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+Person(cliente, "Cliente")
+Container_Ext(accounts, "Accounts Service", "Java, SpringBoot", "Guarda informações de contas de usuario")
+Container_Ext(pricing, "Pricing Service", "Java, SpringBoot", "Calcula preços")
+Container_Ext(combos, "Combos Service", "Java, SpringBoot", "Guarda informações de combos")
+Container_Ext(items, "Items Service", "Java, SpringBoot", "Salva as informações de items")
+
+System_Boundary(b_checkout_service, "Checkout Service") {
+    Container(checkout_controller, "Checkout Controller", "Java, SpringBoot", "Recebe requisição dos clientes")
+    Container(checkout_service, "Order Service", "Java, SpringBoot", "Centraliza o processamento e chama a classe de repository")
+    Container(checkout_rules, "Order Service", "Java, SpringBoot", "Centraliza o processamento e chama a classe de repository")
+    
+
+    Container(order_repository, "Order Repository", "Java, SpringBoot", "Centraliza todos os metodos que fazem interface com o DB")
+}
+
+Rel(cliente,order_controller, "Envia request com informações de conta", "HTTPS")
+Rel(order_controller,order_service, "Envia requisição para processamento")
+Rel(order_service,order_repository, "Envia requisição para camada de DB")
+Rel(order_repository,mongo_analitics, "Executa busca no DB")
+
+
+
+
+
+
