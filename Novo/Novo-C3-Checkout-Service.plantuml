@@ -11,17 +11,33 @@ Container_Ext(items, "Items Service", "Java, SpringBoot", "Salva as informaçõe
 
 System_Boundary(b_checkout_service, "Checkout Service") {
     Container(checkout_controller, "Checkout Controller", "Java, SpringBoot", "Recebe requisição dos clientes")
-    Container(checkout_service, "Order Service", "Java, SpringBoot", "Centraliza o processamento e chama a classe de repository")
-    Container(checkout_rules, "Order Service", "Java, SpringBoot", "Centraliza o processamento e chama a classe de repository")
-    
+    Container(checkout_service, "Checkout Service", "Java, SpringBoot", "Centraliza o processamento e chama a classe de publicação")
+    Container(checkout_rules, "Checkout Rules", "Java, SpringBoot", "Centraliza todas as regras de negocio")
+    Container(accounts_external_service, "Combos External Service", "Java, SpringBoot", "Enriquece os dados de Combos")
+    Container(pricing_external_service, "Pricing External Service", "Java, SpringBoot", "Faz chamada ao serviço de preços")
+    Container(combos_external_service, "Combos External Service", "Java, SpringBoot", "Enriquece os dados de Items")
+    Container(items_external_service, "Items External Service", "Java, SpringBoot", "Enriquece os dados de Items")
+    Container(kafka_publisher, "Kafka Publisher", "Java, SpringBoot", "Publica no topico New Orders Message Broker")
+    ContainerQueue(kafka_new_order, "New Orders Message Broker", "Kafka", "Trafega Novas Ordens")
 
-    Container(order_repository, "Order Repository", "Java, SpringBoot", "Centraliza todos os metodos que fazem interface com o DB")
+
 }
 
-Rel(cliente,order_controller, "Envia request com informações de conta", "HTTPS")
-Rel(order_controller,order_service, "Envia requisição para processamento")
-Rel(order_service,order_repository, "Envia requisição para camada de DB")
-Rel(order_repository,mongo_analitics, "Executa busca no DB")
+Rel(cliente,checkout_controller, "Envia request com produtos", "HTTPS")
+Rel(checkout_controller,checkout_service, "Chama a classe de serviço do MS")
+Rel(checkout_service,checkout_rules, "Chama a classe que controla todas as regras de negocio")
+Rel(checkout_rules,accounts_external_service, "Executa busca no accounts service")
+Rel(checkout_rules,pricing_external_service, "Executa calculo no price service")
+Rel(checkout_rules,combos_external_service, "Executa busca no combos service")
+Rel(checkout_rules,items_external_service, "Executa busca no items service")
+Rel(checkout_service,kafka_publisher, "Publica orderm já processada")
+
+Rel(accounts_external_service,accounts, "Executa busca no accounts service")
+Rel(pricing_external_service, pricing, "Executa calculo no price service")
+Rel(combos_external_service,combos, "Executa busca no combos service")
+Rel(items_external_service, items, "Executa busca no items service")
+Rel(kafka_publisher, kafka_new_order, "Publica orderm já processada")
+
 
 
 
